@@ -13,7 +13,7 @@ const Task = ({desc, estimateAt,doneAt, toggleTask, id}) =>{
     {textDecorationLine:'line-through'} : {};
 
     const date = doneAt ? doneAt : estimateAt;
-    const formatedDate =  moment(estimateAt).locale('pt-br').format('ddd, D [de] MMMM')
+    const formatedDate =  moment(date).locale('pt-br').format('ddd, D [de] MMMM')
 
     return(
     <View style={styles.container}>

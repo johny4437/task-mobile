@@ -6,14 +6,43 @@ import {View,
         Modal, 
         TouchableWithoutFeedback,
         TouchableOpacity,
-        TextInput
+        TextInput,
+        Platform
     } from 'react-native';
 
-const AddTask = ({isVisible, onCancel}) =>{
-    const [value, setValues] = React.useState({
-        desc:''
-    })
-    const {desc} = value
+    import moment from 'moment';
+    import 'moment/locale/pt-br';
+
+    import DateTimePicker from "react-native-modal-datetime-picker"
+const AddTask = ({isVisible, onCancel, onSave}) =>{
+    const [desc, setDesc] = React.useState('')
+    const [date, setDate] = React.useState(new Date());
+    const [showTimePicker, setShowTimePicker] = React.useState(false)
+    
+    
+    const dateString =  moment(date).format('ddd, D [de] MMMM [de] YYYY');
+
+    const showPicker = () =>{
+        setShowTimePicker(true)
+    }
+    const  hideDateTimePicker = () =>{
+        setShowTimePicker(false)
+    }
+    const handleDatePicked = date => {
+        setDate(date)
+        hideDateTimePicker()
+    };
+
+    const save = () =>{
+        const newTask = {
+            desc:desc,
+            date:date
+        }
+        onSave(newTask)
+        setDesc('');
+        setDate(new Date())
+    }
+
     return(
         <Modal transparent={true} visible={isVisible}
         onRequestClose={onCancel}
@@ -27,14 +56,22 @@ const AddTask = ({isVisible, onCancel}) =>{
                 <Text style={styles.header}>Nova Tarefa</Text>
                 <TextInput style={styles.input}
                 placeholder="Informe a Descrição ..."
-                onChangeText={desc => setValues({desc:desc})}
+                onChangeText={desc => setDesc(desc)}
                 value={desc}
+                />
+                <TouchableOpacity onPress={showPicker}>
+                    <Text style={styles.date}>{dateString}</Text>
+                </TouchableOpacity>
+                <DateTimePicker
+                isVisible={showTimePicker}
+                onConfirm={handleDatePicked}
+                onCancel={hideDateTimePicker}
                 />
                 <View style={styles.bottons}>
                     <TouchableOpacity onPress={onCancel}>
                         <Text style={styles.button}>Cancelar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={save}>
                         <Text style={styles.button}>Salvar</Text>
                     </TouchableOpacity>
                 </View>
@@ -83,5 +120,10 @@ const styles = StyleSheet.create({
         margin:20,
         marginRight:30,
         color:commonStyle.colors.today
+    },
+    date:{
+        fontFamily:commonStyle.fontFamily,
+        fontSize:20,
+        marginLeft:15
     }
 })

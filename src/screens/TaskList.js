@@ -11,6 +11,11 @@ import {View,
         Platform,
         Alert
         } from 'react-native';
+
+
+import  AsyncStorage from '@react-native-async-storage/async-storage';
+
+
 import TodayImage from '../../assets/assets/imgs/today.jpg';
 import commonStyle from '../commonStyle';
 import Task from '../components/Task';
@@ -23,21 +28,7 @@ export default function TaskList(){
     const [showModal, setShowModal] = useState(false);
     const [visibleTasks, setVisibleTasks] = useState([]);
     const [showDoneTask, setShowDoneTask] = useState(true)
-    const [task, setTask] = useState([
-        {
-            id:Math.random(),
-            desc:"comprar curso",
-            estimateAt:new Date(),
-            doneAt:new Date()
-        },
-        {
-            id:Math.random(),
-            desc:"Terminar curso",
-            estimateAt:new Date(),
-            doneAt:null
-        }
-            
-    ])
+    const [task, setTask] = useState([])
 
     const toggleTask = taskId =>{
         const tasks = [...task];
@@ -61,7 +52,7 @@ export default function TaskList(){
        
     }
 
-    const filterTasks = () =>{
+    const filterTasks = async () =>{
         let visibleTasks = [];
         if(showDoneTask === true){
             visibleTasks = [...task]
@@ -70,17 +61,26 @@ export default function TaskList(){
             visibleTasks =  task.filter(pending);
         }
         setVisibleTasks(visibleTasks)
+       
     }
 
     React.useEffect(()=>{
         filterTasks()
-    },[])
+        async function getTasks (){
+        const tasks =  await AsyncStorage.getItem('@tasks')
+        const t1 = JSON.parse(tasks)
+        setTask(t1);
+    }
+
+    getTasks()
+
+},[])
 
     const {id, desc, estimateAt, doneAt} = task;
     const today=moment().locale('pt-br').format('ddd, D  [de] MMMM') 
     
 
-    const addTask = newTask =>{
+    const addTask = async newTask =>{
         if(!newTask.desc || !newTask.desc.trim()){
             Alert.alert('Descrição Inválida');
             return;
@@ -93,11 +93,20 @@ export default function TaskList(){
             doneAt:null
         })
 
+
         setTask(tasks);
         setShowModal(false)
         setTimeout(()=>{
             filterTasks()
         }, 1000)
+
+        await AsyncStorage.setItem('@tasks', JSON.stringify(tasks))
+    }
+
+    const deleteTask = ID =>{
+        const tasks =  task.filter(t => t.id !== ID)
+        setTask(tasks)
+        filterTasks()
     }
 
     return(
@@ -123,7 +132,7 @@ export default function TaskList(){
                 <FlatList
                 data={visibleTasks}
                 keyExtractor={item=> `${item.id}`}
-                renderItem={({item})=><Task {...item} toggleTask={toggleTask}/>}
+                renderItem={({item})=><Task {...item} toggleTask={toggleTask} onDelete={deleteTask}/>}
                 />
             </View>
             <TouchableOpacity style={styles.addButton}

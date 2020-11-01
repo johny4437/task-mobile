@@ -15,22 +15,21 @@ import {View,
 
     import DateTimePicker from "react-native-modal-datetime-picker"
 const AddTask = ({isVisible, onCancel, onSave}) =>{
-    const [desc, setDesc] = React.useState('')
-    const [date, setDate] = React.useState(new Date());
-    const [showTimePicker, setShowTimePicker] = React.useState(false)
-    
-    
-    const dateString =  moment(date).format('ddd, D [de] MMMM [de] YYYY');
+    const[desc, setDesc] =  React.useState('');
+    const[showDatePicker, setShowDatePicker] =  React.useState(false)
+    const [date, setDate] = React.useState(new Date())
 
-    const showPicker = () =>{
-        setShowTimePicker(true)
-    }
-    const  hideDateTimePicker = () =>{
-        setShowTimePicker(false)
-    }
-    const handleDatePicked = date => {
+    const show = () => {
+        setShowDatePicker(true);
+    };
+    
+    const hideDatePicker = () => {
+        setShowDatePicker(false);
+    };
+    
+    const handleConfirm = (date) => {
         setDate(date)
-        hideDateTimePicker()
+        hideDatePicker();
     };
 
     const save = () =>{
@@ -40,48 +39,53 @@ const AddTask = ({isVisible, onCancel, onSave}) =>{
         }
         onSave(newTask)
         setDesc('');
-        setDate(new Date())
+        setDate(new Date());
     }
+
+    const fomatedDate = moment(date).locale('pt-br').format('ddd, D [de] MMMM [de] YYYY') 
 
     return(
         <Modal transparent={true} visible={isVisible}
         onRequestClose={onCancel}
-        animationType="slide"
-        >
+        animationType='slide'>
             <TouchableWithoutFeedback onPress={onCancel}>
-                <View style={styles.background}>
-                </View>
+                <View style={styles.background}></View>
             </TouchableWithoutFeedback>
             <View style={styles.container}>
                 <Text style={styles.header}>Nova Tarefa</Text>
-                <TextInput style={styles.input}
-                placeholder="Informe a Descrição ..."
-                onChangeText={desc => setDesc(desc)}
+                <TextInput 
+                style={styles.input} 
+                placeholder="Digite sua Tarefa"
+                onChangeText={text => setDesc(text)}
                 value={desc}
                 />
-                <TouchableOpacity onPress={showPicker}>
-                    <Text style={styles.date}>{dateString}</Text>
+                <TouchableOpacity onPress={show}>
+                    <Text style={styles.date}>{fomatedDate}</Text>
                 </TouchableOpacity>
                 <DateTimePicker
-                isVisible={showTimePicker}
-                onConfirm={handleDatePicked}
-                onCancel={hideDateTimePicker}
+                    isVisible={showDatePicker}
+                    mode="date"
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
+                
                 />
                 <View style={styles.bottons}>
-                    <TouchableOpacity onPress={onCancel}>
-                        <Text style={styles.button}>Cancelar</Text>
+                    <TouchableOpacity style={styles.button} onPress={onCancel}>
+                        <Text>Cancelar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={save}>
-                        <Text style={styles.button}>Salvar</Text>
+                    <TouchableOpacity style={styles.button}
+                    onPress={save}
+                    >
+                        <Text>Salvar</Text>
                     </TouchableOpacity>
                 </View>
             </View>
             <TouchableWithoutFeedback onPress={onCancel}>
-                <View style={styles.background}>
-                </View>
+                <View style={styles.background}></View>
             </TouchableWithoutFeedback>
+
         </Modal>
-    );
+    )
 }
 
 export default AddTask;
@@ -93,7 +97,7 @@ const styles = StyleSheet.create({
         backgroundColor:'rgba(0,0,0,0.7)',
     },
     container:{
-        backgroundColor:'#FFF'
+        backgroundColor:'#FFF',
     },
     header:{
         fontFamily:commonStyle.fontFamily,
@@ -123,7 +127,7 @@ const styles = StyleSheet.create({
     },
     date:{
         fontFamily:commonStyle.fontFamily,
-        fontSize:20,
+        fontSize:18,
         marginLeft:15
     }
 })

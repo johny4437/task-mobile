@@ -22,124 +22,103 @@ import Task from '../components/Task';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import  AddTask  from './AddTask';
 
-const {width, height} = Dimensions.get('screen')
+
 export default function TaskList(){
+    const today =  moment().locale('pt-br').format('ddd,  D [de] MMMM');
+    const[showDoneTasks, setShowDoneTasks] = React.useState(true)
+    const [ visibleTasks, setVisibleTasks ] = React.useState([]);
+    const [showAddTask, setShowAddTask] = React.useState(false)
+    const [tasks, setTasks] =  React.useState([]);
+    const { id, desc, estimateAt, doneAt } = tasks;
 
-    const [showModal, setShowModal] = useState(false);
-    const [visibleTasks, setVisibleTasks] = useState([]);
-    const [showDoneTask, setShowDoneTask] = useState(true)
-    const [task, setTask] = useState([])
-
-    const toggleTask = taskId =>{
-        const tasks = [...task];
-        tasks.forEach(t=>{
-            if(t.id === taskId){
-                t.doneAt =  t.doneAt ? null : new Date();
-            }
-        })
-        setTask([...tasks])
-        setTimeout(()=>{
-            filterTasks()
-        }, 1000)
+    const toogleFilter = () =>{
+        setShowDoneTasks(!showDoneTasks);
+        // filterTasks();
         
     }
-    // Função pra mudar o icone de visibilidade
-   const toogleFilter = () =>{
-        setShowDoneTask(!showDoneTask);
-        setTimeout(()=>{
-            filterTasks()
-        }, 1000)
-       
+
+    // FILTRA AS TASKS
+    // const filterTasks = () =>{
+    //     let visibleTasks = null;
+    //     if(showDoneTasks){
+    //         visibleTasks=[...tasks]
+    //     }else{
+    //         const pending = task => task.doneAt === null;
+    //         visibleTasks = tasks.filter(pending);
+    //     }
+        
+    //     setVisibleTasks([visibleTasks])
+    // }
+
+    const toggleTask = taskId =>{
+        const todo = [...tasks];
+        todo.forEach(task =>{
+            if(task.id === taskId){
+                task.doneAt =  task.doneAt ?  null : new Date();
+            }
+        })
+        setTasks([...todo])
     }
 
-    const filterTasks = async () =>{
-        let visibleTasks = [];
-        if(showDoneTask === true){
-            visibleTasks = [...task]
-        }else{
-            const pending = task => task.doneAt === null;
-            visibleTasks =  task.filter(pending);
-        }
-        setVisibleTasks(visibleTasks)
-       
-    }
-
-    React.useEffect(()=>{
-        filterTasks()
-        async function getTasks (){
-        const tasks =  await AsyncStorage.getItem('@tasks')
-        const t1 = JSON.parse(tasks)
-        setTask(t1);
-    }
-
-    getTasks()
-
-},[])
-
-    const {id, desc, estimateAt, doneAt} = task;
-    const today=moment().locale('pt-br').format('ddd, D  [de] MMMM') 
-    
-
-    const addTask = async newTask =>{
-        if(!newTask.desc || !newTask.desc.trim()){
-            Alert.alert('Descrição Inválida');
+    const addTask =  async (task) =>{
+        if(!task.desc || !task.desc.trim()){
+            Alert.alert('Dados inválidos, descrição não informada');
             return;
         }
-        const tasks = [...task]
-        tasks.push({
+        const listTasks = [...tasks];
+        listTasks.push({
             id:Math.random(),
-            desc:newTask.desc,
-            estimateAt:newTask.date,
+            desc:task.desc,
+            estimateAt:task.date,
             doneAt:null
         })
 
-
-        setTask(tasks);
-        setShowModal(false)
-        setTimeout(()=>{
-            filterTasks()
-        }, 1000)
-
+        setTasks([...listTasks]);
+        setShowAddTask(false)
         await AsyncStorage.setItem('@tasks', JSON.stringify(tasks))
-    }
 
-    const deleteTask = ID =>{
-        const tasks =  task.filter(t => t.id !== ID)
-        setTask(tasks)
-        filterTasks()
     }
+    
+    // React.useEffect(()=>{
+    //     filterTasks()
+    // },[])
 
     return(
         <View style={styles.container}>
-            <AddTask  isVisible={showModal} onCancel={()=> setShowModal(false)}
+            <AddTask isVisible={showAddTask}
+            onCancel={function(){setShowAddTask(false)}}
             onSave={addTask}
             />
-            <ImageBackground source={require('../../assets/assets/imgs/today.jpg')} style={styles.ImgBackground} >
-                <View style={styles.iconBar}>
+            <ImageBackground 
+            source={require('../../assets/assets/imgs/today.jpg')}
+            style={styles.ImgBackground}>
+                {/* <View style={styles.iconBar}>
                     <TouchableOpacity onPress={toogleFilter}>
-                        <Icon name={showDoneTask ? 'eye' : 'eye-slash'}
+                        <Icon name={showDoneTasks ? 'eye': 'eye-slash'}
                         size={20}
                         color={commonStyle.colors.secondary}
                         />
                     </TouchableOpacity>
-                </View>
+                </View> */}
                 <View style={styles.titleBar}>
                     <Text style={styles.title}>Hoje</Text>
                     <Text style={styles.subtitle}>{today}</Text>
                 </View>
             </ImageBackground>
             <View style={styles.taskList}>
-                <FlatList
-                data={visibleTasks}
-                keyExtractor={item=> `${item.id}`}
-                renderItem={({item})=><Task {...item} toggleTask={toggleTask} onDelete={deleteTask}/>}
+                <FlatList 
+                data={tasks}
+                keyExtractor={item => `${item.id}`}
+                renderItem={({item})=> <Task {...item} toggleTask={toggleTask}/>}
                 />
             </View>
-            <TouchableOpacity style={styles.addButton}
-            activeOpacity={0.7}
-            onPress={()=>setShowModal(true)}
+            <TouchableOpacity 
+            style={styles.addButton}
+            onPress={()=>setShowAddTask(true)}
             >
-                <Icon name= "plus" size={20} color={commonStyle.colors.secondary}/>
+                <Icon name="plus" 
+                size={20} 
+                color={commonStyle.colors.secondary}/>
             </TouchableOpacity>
         </View>
     );

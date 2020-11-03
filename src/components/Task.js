@@ -14,7 +14,7 @@ import moment from 'moment';
 import 'moment/locale/pt-br';
 import  Swipeable from 'react-native-gesture-handler/Swipeable';
 
-const Task = ({desc, estimateAt, doneAt, id, toggleTask}) =>{
+const Task = ({desc, estimateAt, doneAt, id, toggleTask, onDelete}) =>{
 
     const doneOrNotStyle = doneAt != null ?
     {textDecorationLine:'line-through'} : {};
@@ -23,7 +23,9 @@ const Task = ({desc, estimateAt, doneAt, id, toggleTask}) =>{
 
     const getRighContent = () =>{
         return(
-            <TouchableOpacity style={styles.right}>
+            <TouchableOpacity style={styles.right}
+            onPress={()=>onDelete(id)}
+            >
                 <Icon name="trash" size={30} color="#FFF"/>
             </TouchableOpacity>
         )
@@ -41,6 +43,7 @@ const Task = ({desc, estimateAt, doneAt, id, toggleTask}) =>{
         <Swipeable
         renderRightActions={getRighContent}
         renderLeftActions={getLeftContent}
+        onSwipeableLeftOpen={()=>onDelete(id)}
 
         >
                 <View style={styles.container}>

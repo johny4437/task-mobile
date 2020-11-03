@@ -58,6 +58,7 @@ export default function TaskList(){
             }
         })
         setTasks([...todo])
+        AsyncStorage.setItem('@tasks', JSON.stringify(todo))
     }
 
     const addTask =  async (task) =>{
@@ -75,13 +76,22 @@ export default function TaskList(){
 
         setTasks([...listTasks]);
         setShowAddTask(false)
-        await AsyncStorage.setItem('@tasks', JSON.stringify(tasks))
+        
 
     }
+    const deleteTask = taskId =>{
+        const newTasks = tasks.filter(task => task.id != taskId)
+        setTasks([...newTasks])
+    }
     
-    // React.useEffect(()=>{
-    //     filterTasks()
-    // },[])
+    React.useEffect(()=>{
+        async function getTasks(){
+            const getFromDB =  await AsyncStorage.getItem('@tasks');
+            const tasks = JSON.parse(getFromDB)
+            setTasks([...tasks])
+        }
+        getTasks()
+    },[])
 
     return(
         <View style={styles.container}>
@@ -109,7 +119,7 @@ export default function TaskList(){
                 <FlatList 
                 data={tasks}
                 keyExtractor={item => `${item.id}`}
-                renderItem={({item})=> <Task {...item} toggleTask={toggleTask}/>}
+                renderItem={({item})=> <Task {...item} toggleTask={toggleTask} onDelete={deleteTask}/>}
                 />
             </View>
             <TouchableOpacity 

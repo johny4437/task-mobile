@@ -1,18 +1,41 @@
 import React from 'react'
-import { StyleSheet, Text, View, TextInput, ImageBackground, TouchableOpacity} from 'react-native'
+import { StyleSheet, Text, View, TextInput, ImageBackground, TouchableOpacity, Alert} from 'react-native'
 
 import commonStyles from '../commonStyle';
-
+import AuthInput from '../components/AuthInput';
+import {server, showError, showSuccess} from '../common';
+import axios from 'axios';
 const Auth = () => {
 
     const [values, setValues] =  React.useState({
-        nome:'',
+        name:'',
         email:'',
         password:'',
         stageNew:false
     });
 
-    const { nome, email, password,stageNew } =  values;
+    const { name, email, password,stageNew } =  values;
+    const singinOrSingup = () =>{
+        if(stageNew){
+            singup()
+        }else{
+            Alert.alert('errado')
+        }
+    }
+
+    const singup = async () =>{
+        try {
+            await axios.post(`http://192.168.0.106:3300/singup`,{
+                name:name,
+                email:email,
+                password:password
+            })
+            showSuccess('Usuário Cadastrado');
+            setValues({stageNew:true})
+        } catch (error) {
+            showError(error)
+        }
+    }
     return (
         <ImageBackground
         source={require('../../assets/assets/imgs/login.jpg')}
@@ -24,29 +47,31 @@ const Auth = () => {
                     {stageNew ? 'Crie a sua conta' : 'Informe seus dados'}
                 </Text>
                 { stageNew &&
-                    <TextInput 
+                    <AuthInput
+                    icon='user' 
                     style={styles.input}
                     placeholder="Nome..." 
-                    value={nome}
-                    onChangeText={text => setValues({nome:text})}
+                    onChangeText={name => setValues({...values,name:name})}
+                    value={name}
                     />
                 
-                
                 }
-                <TextInput 
+                <AuthInput
+                icon='at' 
                 style={styles.input}
                 placeholder="Email" 
                 value={email}
-                onChangeText={text => setValues({email:text})}
+                onChangeText={email => setValues({...values,email:email})}
                 />
-                <TextInput 
+                <AuthInput
+                icon='lock' 
                 style={styles.input}
                 placeholder="Senha" 
                 value={password}
-                onChangeText={text => setValues({password:text})}
+                onChangeText={text => setValues({...values, password:text})}
                 secureTextEntry={true}
                 />
-                <TouchableOpacity>
+                <TouchableOpacity onPress={singinOrSingup}>
                     <View style={styles.button}>
                         {stageNew && stageNew ?
                         <Text style={styles.buttonText}>Registrar</Text> :
@@ -101,11 +126,13 @@ const styles = StyleSheet.create({
         backgroundColor:'#080',
         marginTop:10,
         padding:10,
-        alignItems:'center'
+        alignItems:'center',
+        borderRadius:5
     },
     buttonText:{
         fontFamily:commonStyles.fontFamily,
-        color:'#FFF'
+        color:'#FFF',
+        
     },
     
 })

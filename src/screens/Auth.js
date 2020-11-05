@@ -1,31 +1,37 @@
-import React from 'react'
+import React,{useContext} from 'react'
 import { StyleSheet, Text, View, TextInput, ImageBackground, TouchableOpacity, Alert} from 'react-native'
 
 import commonStyles from '../commonStyle';
 import AuthInput from '../components/AuthInput';
 import {server, showError, showSuccess} from '../common';
 import axios from 'axios';
-const Auth = () => {
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import AuthContext from '../contexts/auth'
+
+const Auth = ({navigation}) => {
+    const { signed } = useContext(AuthContext)
+    console.log(signed)
     const [values, setValues] =  React.useState({
         name:'',
-        email:'',
-        password:'',
+        email:'zuckvs@gmail.com',
+        password:'123456',
+        confirmPassword:'',
         stageNew:false
     });
 
-    const { name, email, password,stageNew } =  values;
+    const { name, email, password, confirmPassword, stageNew } =  values;
     const singinOrSingup = () =>{
         if(stageNew){
             singup()
         }else{
-            Alert.alert('errado')
+            singin()
         }
     }
 
     const singup = async () =>{
         try {
-            await axios.post(`http://192.168.0.106:3300/singup`,{
+            await axios.post(`http://192.168.0.108:3300/singup`,{
                 name:name,
                 email:email,
                 password:password
@@ -36,6 +42,32 @@ const Auth = () => {
             showError(error)
         }
     }
+
+    const singin = async() =>{
+        try {
+            const user = await axios.post(`${server}/singin`, {
+                email:email,
+                password:password
+            })
+            axios.defaults.headers['Authorization'] = `Bearer ${user.data.token}`;
+        } catch (error) {
+            showError(error)
+        }
+    }
+
+    const validations = [];
+
+    validations.push(email && email.includes('@'));
+    validations.push(password && password.length >= 6);
+
+    if(stageNew){
+        validations.push(name && name.trim().length >= 3);
+        validations.push(confirmPassword);
+        validations.push(password === confirmPassword);
+    }
+
+    const validForm = validations.reduce((t, a)=> t && a);
+
     return (
         <ImageBackground
         source={require('../../assets/assets/imgs/login.jpg')}
@@ -70,10 +102,22 @@ const Auth = () => {
                 value={password}
                 onChangeText={text => setValues({...values, password:text})}
                 secureTextEntry={true}
+                />{
+                    stageNew &&
+                    <AuthInput
+                    icon='lock' 
+                    style={styles.input}
+                    placeholder="Digite a senha Novamente" 
+                    value={confirmPassword}
+                    onChangeText={text => setValues({...values, confirmPassword:text})}
+                    secureTextEntry={true}
                 />
-                <TouchableOpacity onPress={singinOrSingup}>
-                    <View style={styles.button}>
-                        {stageNew && stageNew ?
+                }
+                <TouchableOpacity onPress={singinOrSingup}
+                disabled={!validForm}
+                >
+                    <View style={[styles.button, validForm ? {} : {backgroundColor:'#AAA'}]}>
+                        { stageNew ?
                         <Text style={styles.buttonText}>Registrar</Text> :
                         <Text style={styles.buttonText}>Entrar</Text>
                         }

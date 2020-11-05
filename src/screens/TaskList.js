@@ -14,13 +14,14 @@ import {View,
 
 
 import  AsyncStorage from '@react-native-async-storage/async-storage';
-
+import axios from 'axios';
 
 import TodayImage from '../../assets/assets/imgs/today.jpg';
 import commonStyle from '../commonStyle';
 import Task from '../components/Task';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import  AddTask  from './AddTask';
+import { showError, showSuccess, server } from '../common';
 
 
 export default function TaskList(){
@@ -29,6 +30,7 @@ export default function TaskList(){
     const [ visibleTasks, setVisibleTasks ] = React.useState([]);
     const [showAddTask, setShowAddTask] = React.useState(false)
     const [tasks, setTasks] =  React.useState([]);
+    const [userData, setUserData] = React.useState({})
     const { id, desc, estimateAt, doneAt } = tasks;
 
     const toogleFilter = () =>{
@@ -83,14 +85,26 @@ export default function TaskList(){
         const newTasks = tasks.filter(task => task.id != taskId)
         setTasks([...newTasks])
     }
-    
+
+
+    const loadTask = async () =>{
+        try {
+            const maxDate = moment().format('YYY-MM-DD 23:59:59');
+            const res =  await axios.get(`${server}/list/${userData.user[0].id}?date=${maxDate}`);
+            setTasks([...res.data])
+        } catch (error) {
+            showError(error)
+        }
+    }
+    console.log(userData)
     React.useEffect(()=>{
         async function getTasks(){
-            const getFromDB =  await AsyncStorage.getItem('@tasks');
-            const tasks = JSON.parse(getFromDB)
-            setTasks([...tasks])
+            const getFromUser = await AsyncStorage.getItem('@user');
+            const user = JSON.parse(getFromUser);
+            setUserData({...user});
         }
         getTasks()
+        loadTask()
     },[])
 
     return(

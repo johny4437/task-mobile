@@ -6,12 +6,9 @@ import AuthInput from '../components/AuthInput';
 import {server, showError, showSuccess} from '../common';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import AuthContext from '../contexts/auth'
+import {AtuhContext, AuthContext} from '../contexts/auth';
 
 const Auth = ({navigation}) => {
-    const { signed } = useContext(AuthContext)
-    console.log(signed)
     const [values, setValues] =  React.useState({
         name:'',
         email:'zuckvs@gmail.com',
@@ -28,7 +25,7 @@ const Auth = ({navigation}) => {
             singin()
         }
     }
-
+    const { singIn } = React.useContext(AuthContext)
     const singup = async () =>{
         try {
             await axios.post(`http://192.168.0.108:3300/singup`,{
@@ -43,17 +40,21 @@ const Auth = ({navigation}) => {
         }
     }
 
+    const user = {
+        email:email,
+        password:password
+    }
+
     const singin = async() =>{
         try {
-            const user = await axios.post(`${server}/singin`, {
-                email:email,
-                password:password
-            })
-            axios.defaults.headers['Authorization'] = `Bearer ${user.data.token}`;
+            singIn(user)
+            // axios.defaults.headers['Authorization'] = `Bearer ${user.data.token}`;
         } catch (error) {
             showError(error)
         }
     }
+
+
 
     const validations = [];
 

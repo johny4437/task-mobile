@@ -22,7 +22,7 @@ import Task from '../components/Task';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import  AddTask  from './AddTask';
 import { showError, showSuccess, server } from '../common';
-
+import { AuthContext} from '../contexts/auth';
 
 export default function TaskList(){
     const today =  moment().locale('pt-br').format('ddd,  D [de] MMMM');
@@ -86,17 +86,22 @@ export default function TaskList(){
         setTasks([...newTasks])
     }
 
-
+    
+   
     const loadTask = async () =>{
         try {
             const maxDate = moment().format('YYY-MM-DD 23:59:59');
-            const res =  await axios.get(`${server}/list/${userData.user[0].id}?date=${maxDate}`);
+            const res =  await axios.get(`${server}/list/${user[0].id}?date=${maxDate}`);
             setTasks([...res.data])
         } catch (error) {
             showError(error)
         }
     }
-    console.log(userData)
+
+    
+    const { getToken, user } = React.useContext(AuthContext)
+    console.log(user)
+
     React.useEffect(()=>{
         async function getTasks(){
             const getFromUser = await AsyncStorage.getItem('@user');
@@ -104,7 +109,10 @@ export default function TaskList(){
             setUserData({...user});
         }
         getTasks()
-        loadTask()
+        setTimeout(()=>{
+            loadTask()
+        },2000)
+        
     },[])
 
     return(

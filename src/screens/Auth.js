@@ -6,7 +6,7 @@ import AuthInput from '../components/AuthInput';
 import {server, showError, showSuccess} from '../common';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {AtuhContext, AuthContext} from '../contexts/auth';
+
 
 const Auth = ({navigation}) => {
     const [values, setValues] =  React.useState({
@@ -25,7 +25,6 @@ const Auth = ({navigation}) => {
             singin()
         }
     }
-    const { singIn } = React.useContext(AuthContext)
     const singup = async () =>{
         try {
             await axios.post(`http://192.168.0.108:3300/singup`,{
@@ -46,12 +45,12 @@ const Auth = ({navigation}) => {
     }
 
     const singin = async() =>{
-        try {
-            singIn(user)
-            // axios.defaults.headers['Authorization'] = `Bearer ${user.data.token}`;
-        } catch (error) {
-            showError(error)
-        }
+        const response = await axios.post('http://192.168.0.108:3300/singin',{
+            email:email,
+            password:password
+        })
+        axios.defaults.headers['Authorization'] = `Bearer ${response.data.token}`;
+        navigation.navigate('TaskList')
     }
 
 

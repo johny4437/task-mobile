@@ -22,15 +22,16 @@ import Task from '../components/Task';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import  AddTask  from './AddTask';
 import { showError, showSuccess, server } from '../common';
-import { AuthContext} from '../contexts/auth';
 
-export default function TaskList(){
+
+export default function TaskList({title, daysAhead, navigation}){
     const today =  moment().locale('pt-br').format('ddd,  D [de] MMMM');
     const[showDoneTasks, setShowDoneTasks] = React.useState(true)
     const [ visibleTasks, setVisibleTasks ] = React.useState([]);
     const [showAddTask, setShowAddTask] = React.useState(false)
     const [tasks, setTasks] =  React.useState([]);
-    const [userData, setUserData] = React.useState({})
+    const [userId, setUserId] = React.useState('');
+    const [userToken, setUserToken] = React.useState('')
     const { id, desc, estimateAt, doneAt } = tasks;
 
     const toogleFilter = () =>{
@@ -52,15 +53,21 @@ export default function TaskList(){
     //     setVisibleTasks([visibleTasks])
     // }
 
-    const toggleTask = taskId =>{
-        const todo = [...tasks];
-        todo.forEach(task =>{
-            if(task.id === taskId){
-                task.doneAt =  task.doneAt ?  null : new Date();
-            }
-        })
-        setTasks([...todo])
-        AsyncStorage.setItem('@tasks', JSON.stringify(todo))
+    const toggleTask = async (taskId) =>{
+
+        await axios.put(`http://192.168.0.108:3300/toggle/${taskId}/tasks`);
+        await loadTask()
+
+
+
+        // const todo = [...tasks];
+        // todo.forEach(task =>{
+        //     if(task.id === taskId){
+        //         task.doneAt =  task.doneAt ?  null : new Date();
+        //     }
+        // })
+        // setTasks([...todo])
+        // AsyncStorage.setItem('@tasks', JSON.stringify(todo))
     }
 
     const addTask =  async (task) =>{
@@ -68,30 +75,38 @@ export default function TaskList(){
             Alert.alert('Dados inválidos, descrição não informada');
             return;
         }
-        const listTasks = [...tasks];
-        listTasks.push({
-            id:Math.random(),
+        const res = await axios.post('http://192.168.0.108:3300/tasks',{
             desc:task.desc,
-            estimateAt:task.date,
-            doneAt:null
+            estimateAt:task.date
         })
 
-        setTasks([...listTasks]);
+
+
+        // const listTasks = [...tasks];
+        // listTasks.push({
+        //     id:Math.random(),
+        //     desc:task.desc,
+        //     estimateAt:task.date,
+        //     doneAt:null
+        // })
+
+        //setTasks([...listTasks]);
         setShowAddTask(false)
-        
+        loadTask()
 
     }
-    const deleteTask = taskId =>{
-        const newTasks = tasks.filter(task => task.id != taskId)
-        setTasks([...newTasks])
+    const deleteTask = async (taskId) =>{
+        await axios.delete(`http://192.168.0.108:3300/tasks/${taskId}`);
+        await loadTask();
     }
 
     
    
     const loadTask = async () =>{
         try {
-            const maxDate = moment().format('YYY-MM-DD 23:59:59');
-            const res =  await axios.get(`${server}/list/${user[0].id}?date=${maxDate}`);
+            const url = 'http://192.168.0.108:3300';
+            const maxDate = moment().add({days:daysAhead}).format('YYYY-MM-DD 23:59:59');
+            const res =  await axios.get(`${url}/tasks?date=${maxDate}`);
             setTasks([...res.data])
         } catch (error) {
             showError(error)
@@ -99,20 +114,13 @@ export default function TaskList(){
     }
 
     
-    const { getToken, user } = React.useContext(AuthContext)
-    console.log(user)
 
-    React.useEffect(()=>{
-        async function getTasks(){
-            const getFromUser = await AsyncStorage.getItem('@user');
-            const user = JSON.parse(getFromUser);
-            setUserData({...user});
-        }
-        getTasks()
-        setTimeout(()=>{
-            loadTask()
-        },2000)
-        
+    // console.log(userToken)
+    // console.log(userId)
+    // console.log(tasks)
+
+    React.useEffect(()=>{    
+        loadTask()
     },[])
 
     return(
@@ -124,16 +132,22 @@ export default function TaskList(){
             <ImageBackground 
             source={require('../../assets/assets/imgs/today.jpg')}
             style={styles.ImgBackground}>
-                {/* <View style={styles.iconBar}>
-                    <TouchableOpacity onPress={toogleFilter}>
+                <View style={styles.iconBar}>
+                    <TouchableOpacity onPress={()=>navigation.openDrawer()}>
+                        <Icon name='bars'
+                            size={20}
+                            color={commonStyle.colors.secondary}
+                        />
+                    </TouchableOpacity>
+                    {/* <TouchableOpacity onPress={toogleFilter}>
                         <Icon name={showDoneTasks ? 'eye': 'eye-slash'}
                         size={20}
                         color={commonStyle.colors.secondary}
                         />
-                    </TouchableOpacity>
-                </View> */}
+                    </TouchableOpacity> */}
+                </View>
                 <View style={styles.titleBar}>
-                    <Text style={styles.title}>Hoje</Text>
+                    <Text style={styles.title}>{title}</Text>
                     <Text style={styles.subtitle}>{today}</Text>
                 </View>
             </ImageBackground>
@@ -188,7 +202,7 @@ const styles = StyleSheet.create({
     iconBar:{
         flexDirection:'row',
         marginHorizontal:20,
-        justifyContent:'flex-end',
+        justifyContent:'flex-start',
         marginTop: Platform.OS === 'ios' ?  45 : 10
     },
     addButton:{

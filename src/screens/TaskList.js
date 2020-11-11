@@ -15,14 +15,16 @@ import {View,
 
 import  AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
-import TodayImage from '../../assets/assets/imgs/today.jpg';
 import commonStyle from '../commonStyle';
 import Task from '../components/Task';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import  AddTask  from './AddTask';
 import { showError, showSuccess, server } from '../common';
 
+import TodayImage from '../../assets/assets/imgs/today.jpg';
+import TomorrowImage from '../../assets/assets/imgs/tomorrow.jpg';
+import WeekImage from '../../assets/assets/imgs/week.jpg';
+import MonthImage from '../../assets/assets/imgs/month.jpg';
 
 export default function TaskList({title, daysAhead, navigation}){
     const today =  moment().locale('pt-br').format('ddd,  D [de] MMMM');
@@ -39,6 +41,26 @@ export default function TaskList({title, daysAhead, navigation}){
         // filterTasks();
         
     }
+
+
+    const getImage = () =>{
+        switch(daysAhead){
+            case 0: return TodayImage
+            case 1: return TomorrowImage
+            case 7: return WeekImage
+            default: return MonthImage
+        }
+    }
+
+    const getColor = () =>{
+        switch(daysAhead){
+            case 0: return commonStyle.colors.today
+            case 1: return commonStyle.colors.tomorrow
+            case 7: return commonStyle.colors.week
+            default: return commonStyle.colors.month
+        }
+    }
+
 
     // FILTRA AS TASKS
     // const filterTasks = () =>{
@@ -130,7 +152,7 @@ export default function TaskList({title, daysAhead, navigation}){
             onSave={addTask}
             />
             <ImageBackground 
-            source={require('../../assets/assets/imgs/today.jpg')}
+            source={getImage()}
             style={styles.ImgBackground}>
                 <View style={styles.iconBar}>
                     <TouchableOpacity onPress={()=>navigation.openDrawer()}>
@@ -159,7 +181,7 @@ export default function TaskList({title, daysAhead, navigation}){
                 />
             </View>
             <TouchableOpacity 
-            style={styles.addButton}
+            style={[styles.addButton, {backgroundColor: getColor()}]}
             onPress={()=>setShowAddTask(true)}
             >
                 <Icon name="plus" 
@@ -212,7 +234,6 @@ const styles = StyleSheet.create({
         width:50,
         height:50, 
         borderRadius:25,
-        backgroundColor:commonStyle.colors.today,
         alignItems:'center',
         justifyContent:'center'
     }

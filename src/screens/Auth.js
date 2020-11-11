@@ -49,8 +49,16 @@ const Auth = ({navigation}) => {
             email:email,
             password:password
         })
-        axios.defaults.headers['Authorization'] = `Bearer ${response.data.token}`;
-        navigation.navigate('TaskList')
+
+        
+        if(response.data !== 'senha incorreta' && response.data !== 'usuário não cadastrado'  ){
+            await AsyncStorage.setItem('@userData', JSON.stringify(response.data));
+            axios.defaults.headers['Authorization'] = `Bearer ${response.data.token}`;
+            navigation.navigate('TaskList', response.data)
+        }else{
+            Alert.alert(response.data)
+        }
+       
     }
 
 

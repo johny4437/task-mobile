@@ -4,8 +4,26 @@ import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 
 import TaskList from './screens/TaskList';
 import Auth from './screens/Auth';
+import Menu from   './screens/Menu';
+import commonStyle from './commonStyle';
+import AuthOrApp from './screens/AuthOrApp';
 
 
+const menuConfig = {
+    initialRouteName:'Today',
+    contentComponent:Menu,
+    contentOptions:{
+        labelStyle:{
+            fontFamily:commonStyle.fontFamily,
+            fontWeight:'normal',
+            fontSize:20
+        },
+        activeLabelStyle:{
+            color:'#080',
+            fontWeight:'bold',
+        }
+    }
+}
 
 const menuRoutes = {
     Today:{
@@ -39,10 +57,14 @@ const menuRoutes = {
     
 }
 
-const menuNavigator = createDrawerNavigator(menuRoutes)
+const menuNavigator = createDrawerNavigator(menuRoutes, menuConfig)
 
 
 const mainRoutes = {
+    AuthOrApp:{
+        name:'AuthOrApp',
+        screen:AuthOrApp
+    },
     Auth:{
         name:'Auth',
         screen:Auth
@@ -54,7 +76,7 @@ const mainRoutes = {
 }
 
 const mainNavigator = createSwitchNavigator(mainRoutes, {
-    initialRouteName:'Auth'
+    initialRouteName:'AuthOrApp'
 })
 
 export default createAppContainer(mainNavigator)
